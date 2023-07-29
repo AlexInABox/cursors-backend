@@ -12,7 +12,7 @@ const serverOptions = {
 const server = https.createServer(serverOptions);
 const wss = new WebSocket.Server({ server });
 
-const PORT = 2053;
+const PORT = 8080;
 server.listen(PORT, () => {
     console.log(`Secure WebSocket server is listening on port ${PORT}`);
 });

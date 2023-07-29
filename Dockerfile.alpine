@@ -1,6 +1,6 @@
 FROM node:18-alpine
 
-LABEL org.opencontainers.image.source https://github.com/alexinabox/cursors-backend
+LABEL org.opencontainers.image.source=https://github.com/alexinabox/cursors-backend
 
 WORKDIR /app
 

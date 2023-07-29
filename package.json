@@ -1,0 +1,25 @@
+{
+  "name": "cursors-backend",
+  "version": "1.0.0",
+  "description": "The backend for a browser extension displaying others people cursors on any website you visit!",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexInABox/cursors-backend.git"
+  },
+  "author": "alexinabox",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexInABox/cursors-backend/issues"
+  },
+  "homepage": "https://github.com/AlexInABox/cursors-backend#readme",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "https": "^1.0.0",
+    "ws": "^8.13.0"
+  }
+}

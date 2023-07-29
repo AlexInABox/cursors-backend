@@ -73,6 +73,7 @@ wss.on('connection', function (ws) {
             if (!roomExists) {
                 ROOM_INDEX = rooms.length;
                 rooms.push([ROOM, { id: id, ws: ws }]);
+                console.log("Created room " + ROOM);
             }
 
             //notify all clients in that room that a new client connected
@@ -108,6 +109,7 @@ wss.on('connection', function (ws) {
         for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
             if (rooms[ROOM_INDEX][i].id == id) {
                 rooms[ROOM_INDEX].splice(i, 1);
+                i--;
             }
         }
         //notify all clients in that room that the client disconnected
@@ -122,6 +124,7 @@ wss.on('connection', function (ws) {
         for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
             if (rooms[ROOM_INDEX][i].id == id) {
                 rooms[ROOM_INDEX].splice(i, 1);
+                i--;
             }
         }
         //notify all clients in that room that the client disconnected
@@ -136,6 +139,7 @@ wss.on('connection', function (ws) {
         for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
             if (rooms[ROOM_INDEX][i].id == id) {
                 rooms[ROOM_INDEX].splice(i, 1);
+                i--;
             }
         }
         //notify all rooms in that room that the client disconnected

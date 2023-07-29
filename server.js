@@ -51,7 +51,7 @@ wss.on('connection', function (ws) {
         try { //if the message is not valid JSON then close the connection since the client is not following the protocol
             message = JSON.parse(message);
         } catch (e) {
-            console.log("Invalid JSON");
+            console.log(id + " sent an invalid message and was disconnected");
             ws.close(1003); //1003 = unsupported data
             return;
         }
@@ -88,8 +88,6 @@ wss.on('connection', function (ws) {
                     ws.send(JSON.stringify({ type: "connected", id: rooms[ROOM_INDEX][i].id }));
                 }
             }
-
-            console.log(rooms);
         } else if (message.type == "cursor-update") {
             //parse the message
             var x = message.x;
@@ -116,7 +114,6 @@ wss.on('connection', function (ws) {
         for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
             rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
         }
-        console.log(rooms);
     });
     //on timeout
     ws.on('timeout', function () {

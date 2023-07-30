@@ -44,9 +44,24 @@ wss.on('connection', function (ws) {
     var id = Math.random().toString(36).substr(2, 9);
     var ROOM;
     var ROOM_INDEX; //this requires that the rooms never change their index (never remove a room)
+    const TIMEOUT_TIME = 60000; //60 seconds
+
+    //start a timeout timer
+    let timeout = setTimeout(function () {
+        console.log(id + " timed out and was disconnected");
+        ws.close(1000); //1000 = normal closure
+    }, TIMEOUT_TIME); //10 seconds
 
     //when the client sends the first login message
     ws.on('message', function (message) {
+
+        //reset the timeout timer
+        clearTimeout(timeout);
+        timeout = setTimeout(function () {
+            console.log(id + " timed out and was disconnected");
+            ws.close(1000); //1000 = normal closure
+        }, TIMEOUT_TIME); //10 seconds
+
         var message;
         try { //if the message is not valid JSON then close the connection since the client is not following the protocol
             message = JSON.parse(message);

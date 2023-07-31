@@ -3,6 +3,7 @@
 const https = require('https');
 const WebSocket = require('ws');
 const fs = require('fs');
+const { clear } = require('console');
 
 const serverOptions = {
     cert: fs.readFileSync('./ssl/fullchain.pem'),
@@ -119,47 +120,53 @@ wss.on('connection', function (ws) {
     });
     //when the client disconnects
     ws.on('close', function () {
-        if (!ROOM_INDEX) return; //if the client didn't send a login message he never joined a room... so there's nothing to do
-        //remove the client from the array
-        for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
-            if (rooms[ROOM_INDEX][i].id == id) {
-                rooms[ROOM_INDEX].splice(i, 1);
-                i--;
+        if (ROOM_INDEX) {
+            //remove the client from the array
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
+                if (rooms[ROOM_INDEX][i].id == id) {
+                    rooms[ROOM_INDEX].splice(i, 1);
+                    i--;
+                }
+            }
+            //notify all clients in that room that the client disconnected
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
+                rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
             }
         }
-        //notify all clients in that room that the client disconnected
-        for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
-            rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
-        }
+        clearTimeout(timeout);
     });
     //on timeout
     ws.on('timeout', function () {
-        if (!ROOM_INDEX) return; //if the client didn't send a login message he never joined a room... so there's nothing to do
-        //remove the client from the array
-        for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
-            if (rooms[ROOM_INDEX][i].id == id) {
-                rooms[ROOM_INDEX].splice(i, 1);
-                i--;
+        if (ROOM_INDEX) {
+            //remove the client from the array
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
+                if (rooms[ROOM_INDEX][i].id == id) {
+                    rooms[ROOM_INDEX].splice(i, 1);
+                    i--;
+                }
+            }
+            //notify all clients in that room that the client disconnected
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
+                rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
             }
         }
-        //notify all clients in that room that the client disconnected
-        for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
-            rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
-        }
+        clearTimeout(timeout);
     });
     //on error
     ws.on('error', function () {
-        if (!ROOM_INDEX) return; //if the client didn't send a login message he never joined a room... so there's nothing to do
-        //remove the client from the array
-        for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
-            if (rooms[ROOM_INDEX][i].id == id) {
-                rooms[ROOM_INDEX].splice(i, 1);
-                i--;
+        if (ROOM_INDEX) {
+            //remove the client from the array
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
+                if (rooms[ROOM_INDEX][i].id == id) {
+                    rooms[ROOM_INDEX].splice(i, 1);
+                    i--;
+                }
+            }
+            //notify all clients in that room that the client disconnected
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
+                rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
             }
         }
-        //notify all rooms in that room that the client disconnected
-        for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
-            rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
-        }
+        clearTimeout(timeout);
     });
 });

@@ -44,7 +44,7 @@ wss.on('connection', function (ws) {
     var id = Math.random().toString(36).substr(2, 9);
     var ROOM;
     var ROOM_INDEX; //this requires that the rooms never change their index (never remove a room)
-    const TIMEOUT_TIME = 60000; //60 seconds
+    const TIMEOUT_TIME = 300000; //5 minutes
 
     //start a timeout timer
     let timeout = setTimeout(function () {

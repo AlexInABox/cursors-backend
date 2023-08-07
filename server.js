@@ -19,8 +19,8 @@ server.listen(PORT, () => {
 });
 
 var rooms = [
-    ["google.com", /*{ id: "myid", ws: "ws1" }, { id: "myid2", ws: "ws2" }*/],
-    ["wikipedia.com", /*{ id: "myid3", ws: "ws3" }, { id: "myid4", ws: "ws4" }*/]
+    ["google.com", /*{ id: "myid", ws: "ws1", skinId: "1" }, { id: "myid2", ws: "ws2", skinId: "0" }*/],
+    ["wikipedia.com", /*{ id: "myid3", ws: "ws3", skinId: "0" }, { id: "myid4", ws: "ws4", skinId: "4" }*/]
 ]
 /*
 clients = {
@@ -45,6 +45,7 @@ wss.on('connection', function (ws) {
     var id = Math.random().toString(36).substr(2, 9);
     var ROOM;
     var ROOM_INDEX; //this requires that the rooms never change their index (never remove a room)
+    var skinId;
     const TIMEOUT_TIME = 300000; //5 minutes
 
     //start a timeout timer
@@ -75,12 +76,13 @@ wss.on('connection', function (ws) {
         if (message.type == "login") {
             //parse the message
             ROOM = message.room;
+            skinId = message.skinId || 0;
 
             //add the client into his room or create a new room if it doesn't exist already
             var roomExists = false;
             for (var i = 0; i < rooms.length; i++) {
                 if (rooms[i][0] == ROOM) {
-                    rooms[i].push({ id: id, ws: ws });
+                    rooms[i].push({ id: id, ws: ws, skinId: skinId });
                     roomExists = true;
                     ROOM_INDEX = i;
                     break;
@@ -88,21 +90,22 @@ wss.on('connection', function (ws) {
             }
             if (!roomExists) {
                 ROOM_INDEX = rooms.length;
-                rooms.push([ROOM, { id: id, ws: ws }]);
+                rooms.push([ROOM, { id: id, ws: ws, skinId: Number(skinId) }]);
                 console.log("Created room " + ROOM);
+                console.log(rooms);
             }
 
             //notify all clients in that room that a new client connected
             for (var i = 1; i < rooms[ROOM_INDEX].length; i++) { //start from 1 because the first element is the room name
                 if (rooms[ROOM_INDEX][i].id != id) {
-                    rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "connected", id: id }));
+                    rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "connected", id: id, skinId: Number(skinId) }));
                 }
             }
 
             //send the client a connected message for every client already in the room
             for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
                 if (rooms[ROOM_INDEX][i].id != id) {
-                    ws.send(JSON.stringify({ type: "connected", id: rooms[ROOM_INDEX][i].id }));
+                    ws.send(JSON.stringify({ type: "connected", id: rooms[ROOM_INDEX][i].id, skinId: rooms[ROOM_INDEX][i].skinId }));
                 }
             }
         } else if (message.type == "cursor-update") {

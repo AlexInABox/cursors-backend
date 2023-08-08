@@ -110,22 +110,27 @@ wss.on('connection', function (ws) {
                     rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "cursor-update", id: id, x: x, y: y }));
                 }
             }
-        }
 
-        //if the client was previously announced as disconnected (invisible) then announce him as connected again
-        if (INVISIBLE) {
-            console.log(id + " returned from invisibility");
-            INVISIBLE = false;
-            //notify all clients in that room that a "new" client connected
-            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) { //start from 1 because the first element is the room name
-                if (rooms[ROOM_INDEX][i].id != id) {
-                    rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "connected", id: id, skinId: Number(skinId) }));
+            //if the client was previously announced as disconnected (invisible) then announce him as connected again
+            if (INVISIBLE) {
+                console.log(id + " returned from invisibility");
+                INVISIBLE = false;
+                //notify all clients in that room that a "new" client connected
+                for (var i = 1; i < rooms[ROOM_INDEX].length; i++) { //start from 1 because the first element is the room name
+                    if (rooms[ROOM_INDEX][i].id != id) {
+                        rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "connected", id: id, skinId: Number(skinId) }));
+                    }
                 }
             }
+        } else if (message.type == "skin-update") {
+
+        } else if (message.type == "keep-alive") {
+            //this message is sent every 5 seconds by the chrome extension to keep chrome (or every other webbrowser) from suspending the websocket connection on the client side
         }
     });
     //when the client disconnects
     ws.on('close', function () {
+        console.log(id + " disconnected");
         if (ROOM_INDEX) {
             //remove the client from the array
             for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
@@ -144,6 +149,7 @@ wss.on('connection', function (ws) {
     });
     //on timeout
     ws.on('timeout', function () {
+        console.log(id + " timed out and was disconnected");
         if (ROOM_INDEX) {
             //remove the client from the array
             for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
@@ -162,6 +168,7 @@ wss.on('connection', function (ws) {
     });
     //on error
     ws.on('error', function () {
+        console.log(id + " errored and was disconnected");
         if (ROOM_INDEX) {
             //remove the client from the array
             for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {

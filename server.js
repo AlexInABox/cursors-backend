@@ -1,22 +1,12 @@
 //Websocket server that receives live cursor position data from multiple clients that are connected to the same webpage
 
-const https = require('https');
 const WebSocket = require('ws');
-const fs = require('fs');
-const { clear } = require('console');
+const PORT = 2053;
 
-const serverOptions = {
-    cert: fs.readFileSync('./ssl/fullchain.pem'),
-    key: fs.readFileSync('./ssl/privkey.pem')
-};
+const wss = new WebSocket.Server({ port: PORT }); //Running in a docker container this connection will be insecure (ws), until a reverse proxy is set up.
+//                                                //In production this is the case. An apache reverse proxy is set up to point to this docker container wich is running on the very same machine.
 
-const server = https.createServer(serverOptions);
-const wss = new WebSocket.Server({ server });
 
-const PORT = 8080;
-server.listen(PORT, () => {
-    console.log(`Secure WebSocket server is listening on port ${PORT}`);
-});
 
 var rooms = [
     ["google.com", /*{ id: "myid", ws: "ws1", skinId: "1" }, { id: "myid2", ws: "ws2", skinId: "0" }*/],
@@ -39,8 +29,10 @@ clients = {
 }
 */
 
+
 //when a new client connects
 wss.on('connection', function (ws) {
+    console.log("New client connected");
     //generate a unique id for the client
     var id = Math.random().toString(36).substr(2, 9);
     var ROOM;

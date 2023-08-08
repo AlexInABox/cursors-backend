@@ -6,8 +6,6 @@ const PORT = 2053;
 const wss = new WebSocket.Server({ port: PORT }); //Running in a docker container this connection will be insecure (ws), until a reverse proxy is set up.
 //                                                //In production this is the case. An apache reverse proxy is set up to point to this docker container wich is running on the very same machine.
 
-
-
 var rooms = [
     ["google.com", /*{ id: "myid", ws: "ws1", skinId: "1" }, { id: "myid2", ws: "ws2", skinId: "0" }*/],
     ["wikipedia.com", /*{ id: "myid3", ws: "ws3", skinId: "0" }, { id: "myid4", ws: "ws4", skinId: "4" }*/]
@@ -38,23 +36,24 @@ wss.on('connection', function (ws) {
     var ROOM;
     var ROOM_INDEX; //this requires that the rooms never change their index (never remove a room)
     var skinId;
-    const TIMEOUT_TIME = 300000; //5 minutes
+    const MASTER_TIMEOUT_TIME = 1800000; //disconnect the client after 30 minutes of inactivity
+    const INVISIBILITY_TIMEOUT_TIME = 300000; //announce the client as disconnected after 5 minutes of inactivity
+    const INVISIBLE = false; //will be set to true when the client is announced as disconnected
 
-    //start a timeout timer
-    let timeout = setTimeout(function () {
-        console.log(id + " timed out and was disconnected");
-        ws.close(1000); //1000 = normal closure
-    }, TIMEOUT_TIME); //10 seconds
+    //start the master timeout´
+    var MASTER_TIMEOUT = setTimeout(masterTimeout, MASTER_TIMEOUT_TIME);
+
+    var INVISIBILITY_TIMEOUT = setTimeout(invisibilityTimeout, INVISIBILITY_TIMEOUT_TIME);
+
 
     //when the client sends the first login message
     ws.on('message', function (message) {
 
-        //reset the timeout timer
-        clearTimeout(timeout);
-        timeout = setTimeout(function () {
-            console.log(id + " timed out and was disconnected");
-            ws.close(1000); //1000 = normal closure
-        }, TIMEOUT_TIME); //10 seconds
+        //reset the master timeout
+        resetMasterTimeout();
+
+        //reset the invisibility timeout
+        resetInvisibilityTimeout();
 
         var message;
         try { //if the message is not valid JSON then close the connection since the client is not following the protocol
@@ -112,6 +111,18 @@ wss.on('connection', function (ws) {
                 }
             }
         }
+
+        //if the client was previously announced as disconnected (invisible) then announce him as connected again
+        if (INVISIBLE) {
+            console.log(id + " returned from invisibility");
+            INVISIBLE = false;
+            //notify all clients in that room that a "new" client connected
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) { //start from 1 because the first element is the room name
+                if (rooms[ROOM_INDEX][i].id != id) {
+                    rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "connected", id: id, skinId: Number(skinId) }));
+                }
+            }
+        }
     });
     //when the client disconnects
     ws.on('close', function () {
@@ -128,7 +139,8 @@ wss.on('connection', function (ws) {
                 rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
             }
         }
-        clearTimeout(timeout);
+        clearTimeout(MASTER_TIMEOUT);
+        clearTimeout(INVISIBILITY_TIMEOUT);
     });
     //on timeout
     ws.on('timeout', function () {
@@ -145,7 +157,8 @@ wss.on('connection', function (ws) {
                 rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
             }
         }
-        clearTimeout(timeout);
+        clearTimeout(MASTER_TIMEOUT);
+        clearTimeout(INVISIBILITY_TIMEOUT);
     });
     //on error
     ws.on('error', function () {
@@ -162,6 +175,34 @@ wss.on('connection', function (ws) {
                 rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
             }
         }
-        clearTimeout(timeout);
+        clearTimeout(MASTER_TIMEOUT);
+        clearTimeout(INVISIBILITY_TIMEOUT);
     });
+
+    function masterTimeout() {
+        console.log(id + " timed out and was disconnected");
+        ws.close(1000); //1000 = normal closure
+    }
+
+    function resetMasterTimeout() {
+        clearTimeout(MASTER_TIMEOUT);
+        MASTER_TIMEOUT = setTimeout(masterTimeout, MASTER_TIMEOUT_TIME);
+    }
+
+    function invisibilityTimeout() {
+        console.log(id + " was announced as disconnected and is now invisible");
+        if (ROOM_INDEX) {
+            //notify all clients in that room that the client disconnected
+            for (var i = 1; i < rooms[ROOM_INDEX].length; i++) {
+                rooms[ROOM_INDEX][i].ws.send(JSON.stringify({ type: "disconnected", id: id }));
+            }
+        }
+        INVISIBLE = true;
+    }
+
+    function resetInvisibilityTimeout() {
+        clearTimeout(INVISIBILITY_TIMEOUT);
+        INVISIBILITY_TIMEOUT = setTimeout(invisibilityTimeout, INVISIBILITY_TIMEOUT_TIME);
+    }
 });
+
